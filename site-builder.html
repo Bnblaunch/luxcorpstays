@@ -96,24 +96,14 @@ iframe.preview{border:0;background:#fff;box-shadow:0 20px 60px -20px rgba(30,20,
     </div>
 
     <div class="sec">
-      <h3><span class="step">3</span> Company info</h3>
+      <h3><span class="step">3</span> Company name</h3>
       <label class="fl">Company name</label>
       <input type="text" id="fName" value="Summit Corporate Stays">
-      <label class="fl">Headline (hero)</label>
-      <input type="text" id="fHead" value="Reliable corporate housing, effortless ownership">
-      <label class="fl">Short description</label>
-      <textarea id="fSub">We lease your property, place vetted corporate guests, and handle everything — so you collect dependable rent with none of the work.</textarea>
-      <label class="fl">About</label>
-      <textarea id="fAbout">We’re a national corporate-housing provider delivering fully-furnished homes to traveling nurses, business professionals, and relocating employees. We lease directly from owners, care for every property like our own, and guarantee reliable monthly rent.</textarea>
+      <div style="font-size:.72rem;color:var(--slate);margin-top:8px;line-height:1.5">Headline, about, services, guest-screening and insurance details are fixed professional copy — the company name fills in automatically wherever it appears.</div>
     </div>
 
     <div class="sec">
-      <h3><span class="step">4</span> Services</h3>
-      <div id="svcWrap"></div>
-    </div>
-
-    <div class="sec">
-      <h3><span class="step">5</span> Contact</h3>
+      <h3><span class="step">4</span> Contact</h3>
       <label class="fl">Email</label>
       <input type="email" id="fEmail" value="hello@summitcorporatestays.com">
       <label class="fl">Phone</label>
@@ -123,12 +113,13 @@ iframe.preview{border:0;background:#fff;box-shadow:0 20px 60px -20px rgba(30,20,
     </div>
 
     <div class="sec">
-      <h3><span class="step">6</span> Logo</h3>
+      <h3><span class="step">5</span> Logo</h3>
       <div class="logo-row">
         <label class="logo-btn">Upload logo<input type="file" id="fLogo" accept="image/*" hidden></label>
         <div class="logo-btn" id="genLogo">✦ Auto-generate</div>
       </div>
       <div class="logo-prev" id="logoPrev"><span class="ph">A monogram logo is generated automatically. Upload your own to replace it.</span></div>
+      <div style="font-size:.72rem;color:var(--slate);margin-top:8px;line-height:1.5">Transparent logos get an automatic contrasting backing so they stay visible on every template.</div>
       <div id="rmLogo" style="display:none;font-size:.74rem;color:var(--brand);cursor:pointer;margin-top:8px;font-weight:600">↺ Back to auto-generated logo</div>
     </div>
 
@@ -203,14 +194,9 @@ function paintPresets(){
     paintTemplateGrid();paintPresets();render();
   });
 }
-function paintServices(){
-  $('#svcWrap').innerHTML=cfg.services.map((s,i)=>`<div class="svc">
-    <input type="text" data-i="${i}" data-k="t" value="${esc(s.t)}" placeholder="Service title">
-    <textarea data-i="${i}" data-k="d" placeholder="Short description">${esc(s.d)}</textarea></div>`).join('');
-  $('#svcWrap').querySelectorAll('[data-k]').forEach(el=>el.oninput=()=>{cfg.services[el.dataset.i][el.dataset.k]=el.value;render();});
-}
-function bind(id,key){const el=$(id);el.oninput=()=>{cfg[key]=el.value;render();};}
-bind('#fName','name');bind('#fHead','head');bind('#fSub','sub');bind('#fAbout','about');
+function paintServices(){/* headline, about & services are fixed template copy now */}
+function bind(id,key){const el=$(id);if(!el)return;el.oninput=()=>{cfg[key]=el.value;render();};}
+bind('#fName','name');
 bind('#fEmail','email');bind('#fPhone','phone');bind('#fCity','city');
 $('#fName').oninput=()=>{cfg.name=$('#fName').value;render();};
 function isHex(v){return /^#([0-9a-f]{3}|[0-9a-f]{6})$/i.test(v);}
@@ -224,7 +210,7 @@ $('#hAccent').oninput=e=>setAccent(e.target.value,true);
 $('#hPrimary').onblur=e=>{if(isHex(normHex(e.target.value)))e.target.value=normHex(e.target.value).toUpperCase();else e.target.value=cfg.primary.toUpperCase();};
 $('#hAccent').onblur=e=>{if(isHex(normHex(e.target.value)))e.target.value=normHex(e.target.value).toUpperCase();else e.target.value=cfg.accent.toUpperCase();};
 // logo
-$('#fLogo').onchange=e=>{const f=e.target.files[0];if(!f)return;const r=new FileReader();r.onload=()=>{cfg.logo=r.result;refreshLogoPrev();render();};r.readAsDataURL(f);};
+$('#fLogo').onchange=e=>{const f=e.target.files[0];if(!f)return;const r=new FileReader();r.onload=async()=>{cfg.logo=await normalizeLogo(r.result);refreshLogoPrev();render();};r.readAsDataURL(f);};
 $('#genLogo').onclick=()=>{cfg.logo=null;refreshLogoPrev();render();};
 $('#rmLogo').onclick=()=>{cfg.logo=null;$('#fLogo').value='';refreshLogoPrev();render();};
 function refreshLogoPrev(){
@@ -321,7 +307,7 @@ function publishModal(){
       const slugv=slugify(host_el.querySelector('#pubSlug').value);
       const dom=host_el.querySelector('#pubDomain').value.trim().replace(/^https?:\/\//,'').replace(/\/.*$/,'')||null;
       const row={slug:slugv,template:cfg.template,primary_color:cfg.primary,accent_color:cfg.accent,
-        company:cfg.name,headline:cfg.head,subhead:cfg.sub,about:cfg.about,services:cfg.services,
+        company:cfg.name,headline:'',subhead:'',about:'',services:[],
         email:cfg.email,phone:cfg.phone,city:cfg.city,logo:cfg.logo||'',custom_domain:dom,published:true};
       const {error}=await sb.from('sites').upsert(row,{onConflict:'slug'});
       if(error){msg.style.color="#dc2626";msg.textContent="Save failed: "+error.message;return;}

@@ -41,6 +41,73 @@ var PIX={
 function baseVars(){return '--p:'+cfg.primary+';--a:'+cfg.accent+';';}
 function svcCards(){return cfg.services.map(function(s){return {t:esc(s.t),d:esc(s.d)};});}
 
+/* ---------------- logo auto-contrast (builder-only) ----------------
+   Analyzes an uploaded logo so it’s always visible on any template/header.
+   - A logo that already has its own opaque background is left untouched.
+   - A transparent (cut-out) logo gets a rounded plate baked behind it whose
+     color contrasts with the logo’s ink: light/white logos get a dark plate,
+     dark logos get a white plate. The result is a data URL stored as cfg.logo,
+     so published sites show the corrected logo automatically — no schema change. */
+function normalizeLogo(dataUrl){
+  return new Promise(function(resolve){
+    try{
+      var img=new Image();
+      img.onload=function(){
+        var w=img.naturalWidth||img.width, h=img.naturalHeight||img.height;
+        if(!w||!h){resolve(dataUrl);return;}
+        var c=document.createElement('canvas');c.width=w;c.height=h;
+        var x=c.getContext('2d');x.drawImage(img,0,0);
+        var data;try{data=x.getImageData(0,0,w,h).data;}catch(e){resolve(dataUrl);return;}
+        var opaque=0,transparent=0,lum=0;
+        for(var i=0;i<data.length;i+=4){
+          var a=data[i+3];
+          if(a<40){transparent++;continue;}
+          opaque++; lum+=(0.2126*data[i]+0.7152*data[i+1]+0.0722*data[i+2])/255;
+        }
+        var total=opaque+transparent||1;
+        // Mostly opaque → it carries its own background; leave it alone.
+        if(transparent/total<0.15){resolve(dataUrl);return;}
+        var avg=opaque?lum/opaque:0;
+        var plate=avg>0.5?'#141019':'#ffffff';           // light ink → dark plate, else white plate
+        var pad=Math.round(Math.max(w,h)*0.16), rad=Math.round(Math.max(w,h)*0.16);
+        var ow=w+pad*2, oh=h+pad*2;
+        var oc=document.createElement('canvas');oc.width=ow;oc.height=oh;
+        var ox=oc.getContext('2d');
+        ox.fillStyle=plate;
+        ox.beginPath();
+        ox.moveTo(rad,0);
+        ox.arcTo(ow,0,ow,oh,rad);ox.arcTo(ow,oh,0,oh,rad);ox.arcTo(0,oh,0,0,rad);ox.arcTo(0,0,ow,0,rad);
+        ox.closePath();ox.fill();
+        ox.drawImage(img,pad,pad,w,h);
+        resolve(oc.toDataURL('image/png'));
+      };
+      img.onerror=function(){resolve(dataUrl);};
+      img.src=dataUrl;
+    }catch(e){resolve(dataUrl);}
+  });
+}
+
+/* ---------------- FIXED site copy ----------------
+   The hero headline, description, about paragraph, and owner-benefit cards are
+   NOT client-editable — they’re professional copy that ships with every template.
+   Only the COMPANY NAME (+ contact, colors, logo) varies, and it’s injected
+   automatically wherever a company reference appears. applyDefaults() fills any
+   blank field so old sites with stale saved text get corrected on re-publish. */
+var DEF_HEAD='Reliable corporate housing, effortless ownership';
+var DEF_SUB='We lease your property, place vetted corporate guests, and handle everything — so you collect dependable rent with none of the work.';
+var DEF_ABOUT='We’re a national corporate-housing provider delivering fully-furnished homes to traveling nurses, business professionals, and relocating employees. We lease directly from owners, care for every property like our own, and guarantee reliable monthly rent.';
+var DEF_SERVICES=[
+  {t:'Guaranteed Monthly Rent', d:'You’re paid on the same day every month, occupied or not — no vacancies, no chasing, no gaps.'},
+  {t:'Full Property Care', d:'We handle cleaning, turnovers, touch-ups, and routine maintenance so your home stays in top condition.'},
+  {t:'Vetted Corporate Guests', d:'Every guest is background-checked and bound by a signed rental agreement before they ever get a key.'}
+];
+function applyDefaults(){
+  if(!cfg.head) cfg.head=DEF_HEAD;
+  if(!cfg.sub) cfg.sub=DEF_SUB;
+  if(!cfg.about) cfg.about=DEF_ABOUT;
+  if(!Array.isArray(cfg.services)||!cfg.services.length) cfg.services=DEF_SERVICES.map(function(s){return {t:s.t,d:s.d};});
+}
+
 /* ---------------- FIXED marketing content (from the pitch deck) ----------------
    These read cfg.name where a company reference reads naturally, but never leave a
    stale/placeholder name behind. */
@@ -309,7 +376,7 @@ function tpl_aurora(){
 +'.nav{display:flex;align-items:center;justify-content:space-between;height:80px}'
 +'.brand{display:flex;align-items:center;gap:.6rem;color:#fff;font-family:Sora;font-weight:700;font-size:1.3rem}'
 +'.lg-mono{width:38px;height:38px;border-radius:10px;background:rgba(255,255,255,.16);display:grid;place-items:center;font-weight:800;color:#fff;font-size:1rem}'
-+'.lg-img{height:40px;width:auto;border-radius:8px;background:#fff;padding:3px}'
++'.lg-img{height:40px;width:auto;border-radius:8px}'
 +'.nav .links{display:flex;align-items:center;gap:24px}.nav .links a{color:#efe9ff;text-decoration:none;font-weight:600;font-size:.92rem}'
 +'.nav a.cta{background:#fff;color:var(--p);padding:.6rem 1.2rem;border-radius:999px;font-weight:700;text-decoration:none;font-size:.9rem}'
 +'.hero{background:radial-gradient(120% 120% at 80% -10%,var(--a),var(--p) 45%,#160f2e 100%);color:#fff;padding:150px 0 110px;position:relative;overflow:hidden}'
@@ -417,7 +484,7 @@ function tpl_haven(){
 function tpl_summit(){return tpl_aurora();}
 
 var RENDERERS={classic:tpl_classic,aurora:tpl_aurora,haven:tpl_haven,summit:tpl_summit};
-function buildSite(){return (RENDERERS[cfg.template]||tpl_classic)();}
+function buildSite(){applyDefaults();return (RENDERERS[cfg.template]||tpl_classic)();}
 
 /* Node/test entry (ignored in the browser). */
 if(typeof module!=='undefined'&&module.exports){module.exports={buildSite:buildSite,RENDERERS:RENDERERS};}

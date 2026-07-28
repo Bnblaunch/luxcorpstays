@@ -96,26 +96,16 @@ iframe.preview{border:0;background:#fff;box-shadow:0 20px 60px -20px rgba(30,20,
     </div>
 
     <div class="sec">
-      <h3><span class="step">3</span> Company info</h3>
+      <h3><span class="step">3</span> Company name</h3>
       <label class="fl">Company name</label>
       <input type="text" id="fName" value="Summit Corporate Stays">
-      <label class="fl">Headline (hero)</label>
-      <input type="text" id="fHead" value="Reliable corporate housing, effortless ownership">
-      <label class="fl">Short description</label>
-      <textarea id="fSub">We lease your property, place vetted corporate guests, and handle everything — so you collect dependable rent with none of the work.</textarea>
-      <label class="fl">About</label>
-      <textarea id="fAbout">We’re a national corporate-housing provider delivering fully-furnished homes to traveling nurses, business professionals, and relocating employees. We lease directly from owners, care for every property like our own, and guarantee reliable monthly rent.</textarea>
+      <div style="font-size:.72rem;color:var(--slate);margin-top:8px;line-height:1.5">Your headline, about section, services, guest-screening and insurance details are all professionally written and fill in automatically — your company name is inserted wherever it appears.</div>
     </div>
 
     <div class="sec">
-      <h3><span class="step">4</span> Services</h3>
-      <div id="svcWrap"></div>
-    </div>
-
-    <div class="sec">
-      <h3><span class="step">5</span> Contact</h3>
+      <h3><span class="step">4</span> Contact</h3>
       <label class="fl">Email</label>
-      <input type="email" id="fEmail" value="hello@skylinestays.com">
+      <input type="email" id="fEmail" value="hello@summitcorporatestays.com">
       <label class="fl">Phone</label>
       <input type="tel" id="fPhone" value="(555) 210-4400">
       <label class="fl">City / area served</label>
@@ -123,12 +113,13 @@ iframe.preview{border:0;background:#fff;box-shadow:0 20px 60px -20px rgba(30,20,
     </div>
 
     <div class="sec">
-      <h3><span class="step">6</span> Logo</h3>
+      <h3><span class="step">5</span> Logo</h3>
       <div class="logo-row">
         <label class="logo-btn">Upload logo<input type="file" id="fLogo" accept="image/*" hidden></label>
         <div class="logo-btn" id="genLogo">✦ Auto-generate</div>
       </div>
       <div class="logo-prev" id="logoPrev"><span class="ph">A monogram logo is generated automatically. Upload your own to replace it.</span></div>
+      <div style="font-size:.72rem;color:var(--slate);margin-top:8px;line-height:1.5">If your logo has a transparent background, we automatically add a contrasting backing so it stays visible on every template.</div>
       <div id="rmLogo" style="display:none;font-size:.74rem;color:var(--brand);cursor:pointer;margin-top:8px;font-weight:600">↺ Back to auto-generated logo</div>
     </div>
 
@@ -204,14 +195,9 @@ function paintPresets(){
     paintTemplateGrid();paintPresets();render();
   });
 }
-function paintServices(){
-  $('#svcWrap').innerHTML=cfg.services.map((s,i)=>`<div class="svc">
-    <input type="text" data-i="${i}" data-k="t" value="${esc(s.t)}" placeholder="Service title">
-    <textarea data-i="${i}" data-k="d" placeholder="Short description">${esc(s.d)}</textarea></div>`).join('');
-  $('#svcWrap').querySelectorAll('[data-k]').forEach(el=>el.oninput=()=>{cfg.services[el.dataset.i][el.dataset.k]=el.value;render();});
-}
-function bind(id,key){const el=$(id);el.oninput=()=>{cfg[key]=el.value;render();};}
-bind('#fName','name');bind('#fHead','head');bind('#fSub','sub');bind('#fAbout','about');
+function paintServices(){/* headline, about & services are fixed template copy now — nothing to paint */}
+function bind(id,key){const el=$(id);if(!el)return;el.oninput=()=>{cfg[key]=el.value;render();};}
+bind('#fName','name');
 bind('#fEmail','email');bind('#fPhone','phone');bind('#fCity','city');
 $('#fName').oninput=()=>{cfg.name=$('#fName').value;render();};
 function isHex(v){return /^#([0-9a-f]{3}|[0-9a-f]{6})$/i.test(v);}
@@ -225,7 +211,7 @@ $('#hAccent').oninput=e=>setAccent(e.target.value,true);
 $('#hPrimary').onblur=e=>{if(isHex(normHex(e.target.value)))e.target.value=normHex(e.target.value).toUpperCase();else e.target.value=cfg.primary.toUpperCase();};
 $('#hAccent').onblur=e=>{if(isHex(normHex(e.target.value)))e.target.value=normHex(e.target.value).toUpperCase();else e.target.value=cfg.accent.toUpperCase();};
 // logo
-$('#fLogo').onchange=e=>{const f=e.target.files[0];if(!f)return;const r=new FileReader();r.onload=()=>{cfg.logo=r.result;refreshLogoPrev();render();};r.readAsDataURL(f);};
+$('#fLogo').onchange=e=>{const f=e.target.files[0];if(!f)return;const r=new FileReader();r.onload=async()=>{cfg.logo=await normalizeLogo(r.result);refreshLogoPrev();render();};r.readAsDataURL(f);};
 $('#genLogo').onclick=()=>{cfg.logo=null;refreshLogoPrev();render();};
 $('#rmLogo').onclick=()=>{cfg.logo=null;$('#fLogo').value='';refreshLogoPrev();render();};
 function refreshLogoPrev(){
@@ -283,7 +269,7 @@ async function callFn(n,body){
 function slugify(s){return (s||'site').toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'').slice(0,50)||'site';}
 let _customDomain='',_locked=false;
 function hydrate(){
-  $('#fName').value=cfg.name||'';$('#fHead').value=cfg.head||'';$('#fSub').value=cfg.sub||'';$('#fAbout').value=cfg.about||'';
+  $('#fName').value=cfg.name||'';
   $('#fEmail').value=cfg.email||'';$('#fPhone').value=cfg.phone||'';$('#fCity').value=cfg.city||'';
   $('#cPrimary').value=cfg.primary;$('#hPrimary').value=(cfg.primary||'').toUpperCase();
   $('#cAccent').value=cfg.accent;$('#hAccent').value=(cfg.accent||'').toUpperCase();
@@ -298,9 +284,10 @@ async function loadClient(){
   if(d.site){
     const s=d.site;
     cfg.template=s.template||cfg.template;cfg.primary=s.primary_color||cfg.primary;cfg.accent=s.accent_color||cfg.accent;
-    cfg.name=s.company||'';cfg.head=s.headline||'';cfg.sub=s.subhead||'';cfg.about=s.about||'';
+    cfg.name=s.company||'';
     cfg.email=s.email||'';cfg.phone=s.phone||'';cfg.city=s.city||'';cfg.logo=s.logo||null;
-    if(Array.isArray(s.services)&&s.services.length)cfg.services=s.services;
+    /* headline/about/services are NOT loaded from storage — they’re fixed template copy,
+       so re-publishing an old site overwrites any stale saved text automatically. */
     _customDomain=s.custom_domain||'';
   }else{cfg.name=d.client_name||cfg.name;cfg.email=d.client_email||cfg.email;}
   hydrate();
@@ -341,7 +328,10 @@ function publishModal(){
     const slugv=(h.querySelector('#pubSlug').value||'').toLowerCase().replace(/[^a-z0-9-]/g,'').replace(/^-+|-+$/g,'');
     if(slugv.length<3){msg.style.color='#dc2626';msg.textContent='Please choose a web address of at least 3 characters.';return;}
     const dom=h.querySelector('#pubDomain').value.trim().replace(/^https?:\/\//,'').replace(/\/.*$/,'').replace(/^www\./,'')||'';
-    const save={slug:slugv,template:cfg.template,primary:cfg.primary,accent:cfg.accent,name:cfg.name,head:cfg.head,sub:cfg.sub,about:cfg.about,services:cfg.services,email:cfg.email,phone:cfg.phone,city:cfg.city,logo:cfg.logo||'',custom_domain:dom};
+    /* head/sub/about/services are intentionally stored blank — the site renderer
+       supplies the fixed professional copy, so every site stays in sync and no
+       stale placeholder text can ever be saved. */
+    const save={slug:slugv,template:cfg.template,primary:cfg.primary,accent:cfg.accent,name:cfg.name,head:'',sub:'',about:'',services:[],email:cfg.email,phone:cfg.phone,city:cfg.city,logo:cfg.logo||'',custom_domain:dom};
     const d=await callFn('client-site',{c:TOKEN,save});
     if(!d||d.error||!d.ok){msg.style.color='#dc2626';msg.textContent=(d&&d.error)?d.error:'Publish failed';return;}
     _customDomain=dom;
