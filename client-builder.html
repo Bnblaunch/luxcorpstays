@@ -390,7 +390,8 @@ function publishModal(){
         +'<li>Sign in at <b>godaddy.com</b>, open <b>My Products</b>, and next to your domain click <b>DNS</b>.</li>'
         +'<li>Under <b>Records</b>, click <b>Add New Record</b> and choose type <b>CNAME</b>.</li>'
         +'<li><b>Name:</b> <code>www</code> &nbsp;·&nbsp; <b>Value:</b> <code>'+esc(target)+'</code> &nbsp;·&nbsp; <b>TTL:</b> 1 Hour. Click <b>Save</b>.</li>'
-        +'<li>Open <b>Forwarding</b> in your domain settings and forward the plain <code>'+esc(dom)+'</code> to <code>https://www.'+esc(dom)+'</code>.</li>'
+        +'<li>Click <b>Add New Record</b> again, type <b>A</b>. <b>Name:</b> <code>@</code> &nbsp;·&nbsp; <b>Value:</b> <code>76.76.21.21</code> &nbsp;·&nbsp; <b>TTL:</b> 1 Hour. Save. This makes the plain <code>'+esc(dom)+'</code> (without www) work too.</li>'
+        +'<li>If GoDaddy shows a leftover A record on <code>@</code> marked <b>Parked</b>, delete it — keep only the <code>76.76.21.21</code> one.</li>'
         +'<li>DNS usually updates in 10–30 minutes. Your site then loads at <b>'+esc(dom)+'</b> — we finish connecting it automatically.</li>'
         +'</ol></div>';
     }
