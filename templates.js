@@ -28,15 +28,16 @@ function stock(u,kw,cls,w,h){
   var fb="https://loremflickr.com/"+w+"/"+h+"/"+kw;
   return '<img class="'+cls+'" alt="" loading="lazy" src="'+u+'" data-fb="'+fb+'" onerror="if(this.dataset.fb){this.src=this.dataset.fb;this.dataset.fb=\'\';}else{this.style.display=\'none\';}">';
 }
-var WS='https://wrightstays.com/wp-content/uploads/2024/01/';
+// Template photos served from Unsplash's own CDN (hotlink-friendly on ANY client domain).
+var U='https://images.unsplash.com/';
 var PIX={
-  hero:WS+'spacejoy-4xRP0Ajk9ys-unsplash.jpg', heroKw:'apartment,interior',
-  about:WS+'krystal-black-V5OEpF12pzw-unsplash-600x600-1.jpg', aboutKw:'livingroom,modern',
-  g1:WS+'spacejoy-c0JoR_-2x3E-unsplash-600x600-1.jpg', g1k:'livingroom',
-  g2:WS+'spacejoy-65k2klkcvT8-unsplash-600x600-1.jpg', g2k:'bedroom',
-  g3:WS+'spacejoy-CtPRtg8KSIs-unsplash-600x600-1.jpg', g3k:'kitchen',
-  g4:WS+'spacejoy-c6SxfCFLNhE-unsplash-600x600-1.jpg', g4k:'bathroom,interior',
-  feat:WS+'spacejoy-XM-miHibz64-unsplash-1-600x600-1.jpg', featKw:'apartment,building'
+  hero:U+'photo-1618221469555-7f3ad97540d6?auto=format&fit=crop&q=80&w=1600', heroKw:'apartment,interior',
+  about:U+'photo-1631679706909-1844bbd07221?auto=format&fit=crop&q=80&w=900&h=900', aboutKw:'livingroom,modern',
+  g1:U+'photo-1631679706909-1844bbd07221?auto=format&fit=crop&q=80&w=700&h=700', g1k:'livingroom',
+  g2:U+'photo-1616046619793-7e4badf3fe1f?auto=format&fit=crop&q=80&w=700&h=700', g2k:'bedroom',
+  g3:U+'photo-1618221257490-1d703817596c?auto=format&fit=crop&q=80&w=700&h=700', g3k:'kitchen',
+  g4:U+'photo-1617099361779-b4ba8c05bc27?auto=format&fit=crop&q=80&w=700&h=700', g4k:'bathroom,interior',
+  feat:U+'photo-1616486029423-aaa4789e8c9a?auto=format&fit=crop&q=80&w=700&h=700', featKw:'apartment,building'
 };
 function baseVars(){return '--p:'+cfg.primary+';--a:'+cfg.accent+';';}
 function svcCards(){return cfg.services.map(function(s){return {t:esc(s.t),d:esc(s.d)};});}
